@@ -1,26 +1,26 @@
 using Microsoft.AspNetCore.Mvc;
-using Banco.Services; // Namespace fictício para seu serviço de autenticação
-using Banco.DTOs;
+using api.DTOs;
+using api.Interfaces;
 
-namespace Banco.Controllers
+namespace api.Controllers
 {
-	[Route("api/[controller]")]
-	[ApiController]
-	public class AuthController : ControllerBase
-	{
-		private readonly IAuthService _authService;
+    [Route("api/[controller]")]
+    [ApiController]
+    public class AuthController : ControllerBase
+    {
+        private readonly IAuthService _authService;
 
-		public AuthController(IAuthService authService)
-		{
-			_authService = authService;
-		}
+        public AuthController(IAuthService authService)
+        {
+            _authService = authService;
+        }
 
-		[HttpPost("login")]
-		public IActionResult Login([FromBody] LoginDTO login)
-		{
-			var token = _authService.Autenticar(login);
-			if (token == null) return Unauthorized("Usuário ou senha inválidos");
-			return Ok(new { token });
-		}
-	}
+        [HttpPost("login")]
+        public IActionResult Login([FromBody] LoginDTO login)
+        {
+            var token = _authService.GerarToken(login);
+            if (token == null) return Unauthorized("Usuário ou senha inválidos");
+            return Ok(new { token });
+        }
+    }
 }

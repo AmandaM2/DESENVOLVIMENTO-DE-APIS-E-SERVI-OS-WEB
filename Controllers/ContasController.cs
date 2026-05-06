@@ -1,14 +1,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Banco.Services;
-using Banco.DTOs;
+using api.DTOs;
+using api.Interfaces;
 
-namespace Banco.Controllers
+namespace api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [cite_start]
-    [Authorize] // Garante que só usuários logados acessem 
+    [Authorize] // Garante que só usuários logados acessem
     public class ContasController : ControllerBase
     {
         private readonly IContaService _service;
@@ -18,7 +17,6 @@ namespace Banco.Controllers
             _service = service;
         }
 
-        [cite_start]// Busca dados da conta para exibir na View [cite: 61]
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
@@ -30,7 +28,7 @@ namespace Banco.Controllers
         [HttpPost]
         public async Task<IActionResult> CriarConta(ContaDTO contaDto)
         {
-            await _service.Criar(contaDto);
+            await _service.CriarConta(contaDto);
             return Ok("Conta criada com sucesso");
         }
     }

@@ -1,21 +1,99 @@
+using Microsoft.EntityFrameworkCore;
+using api.Data;         // Ajustado de Livros para api
+using api.Interfaces;   // Onde estão suas IContaRepository e IContaService
+using api.Repositories;
+using api.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
+using System.Text;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+// --- 1. CONFIGURAÇÃO DE SERVIÇOS ---
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+// Configuração do Banco de Dados MySQL (Pomelo)
+// Ajustado para usar "DefaultConnection" que configuramos no appsettings.json
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseMySQL($"{builder.Configuration.GetConnectionString("ConexaoPadrao")}"));
+
+// --- 2. INJEÇÃO DE DEPENDÊNCIA (SISTEMA BANCÁRIO) ---
+
+// Registrando Repositórios
+builder.Services.AddScoped<IContaService, ContaService>();
+builder.Services.AddScoped<ITransacaoService, TransacaoService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IContaRepository, ContaRepository>();
+builder.Services.AddScoped<ITransacaoRepository, TransacaoRepository>();
+
+// Registrando Services (Lógica de Saque/Depósito)
+builder.Services.AddScoped<IContaService, ContaService>();
+
+// --- 3. CONFIGURAÇÃO DO JWT (SEGURANÇA) ---
+
+var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"] ?? "SenhaSuperSecretaDePeloMenos32Caracteres");
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(key),
+        ValidateIssuer = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidateAudience = true,
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        ClockSkew = TimeSpan.Zero // Remove o atraso na expiração do token
+    };
+});
+
+// --- 4. SWAGGER COM BOTÃO DE CADEADO ---
+
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Sistema Bancário API", Version = "v1" });
+
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Insira o token JWT desta forma: Bearer {seu token}"
+    });
+
+    c.AddSecurityRequirement(doc => new OpenApiSecurityRequirement
+    {
+        [new OpenApiSecuritySchemeReference("bearer", doc)] = []
+    });
+});
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// --- 5. PIPELINE DE EXECUÇÃO (MIDDLEWARES) ---
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(); 
-    app.MapOpenApi();
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
+
+// ORDEM IMPORTANTE: Autenticação primeiro, depois Autorização
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapControllers();
+
 app.Run();

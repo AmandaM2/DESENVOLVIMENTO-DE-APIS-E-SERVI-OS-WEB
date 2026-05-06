@@ -1,14 +1,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Banco.Services;
-using Banco.DTOs;
+using api.DTOs;
+using api.Interfaces;
 
-namespace Banco.Controllers
+namespace api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [cite_start]
-    [Authorize] // Segurança JWT 
+    [Authorize] // Segurança JWT
     public class TransacoesController : ControllerBase
     {
         private readonly ITransacaoService _service;
@@ -23,9 +22,8 @@ namespace Banco.Controllers
         {
             try
             {
-                [cite_start]// A lógica de verificar saldo e aplicar taxas está dentro do Service [cite: 58, 59]
                 await _service.RealizarSaque(dto);
-                return Ok(new { mensagem = "Saque realizado!", novoSaldo = await _service.ObterSaldo(dto.ContaId) });
+                return Ok(new { mensagem = "Saque realizado!", novoSaldo = _service.ObterSaldo(dto.ContaId) });
             }
             catch (Exception ex)
             {
