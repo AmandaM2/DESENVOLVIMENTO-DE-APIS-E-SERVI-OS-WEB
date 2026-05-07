@@ -1,38 +1,66 @@
 using api.Interfaces;
 using api.Models;
+using api.Data;
 
 namespace api.Repositories
 {
-    public class ContaRepository : IContaRepository
+    public class ContaRepository(AppDbContext context) : IContaRepository
     {
-        public Task<Conta> CreateAsync(Conta conta)
+
+        // Injeção de Dependência
+        private readonly AppDbContext _context = context;
+
+        public async Task<Conta> CreateAsync(Conta conta)
         {
-            throw new NotImplementedException();
+            return await _context.Conta.AddAsync(conta);
         }
 
-        public Task<Conta?> DeleteAsync(int id)
+        public async Task<Conta?> DeleteAsync(int id)
         {
-            throw new NotImplementedException();
+            var contaModel = await _context.Conta.FirstOrDefault(c => c.Id == id);
+
+            if (contaModel == null)
+                return contaModel;
+
+            _context.Conta.Remove(contaModel);
+            await _context.SaveChangeAsync();
+
+            return contaModel;
         }
 
-        public Task<bool> ExisteContaAsync(int id)
+        public async Task<bool> ExisteContaAsync(int id)
         {
-            throw new NotImplementedException();
+            return await _context.Conta.FirstOrDefaultAsync(c => c.Id == id);
         }
 
-        public Task<List<Conta>> GetAllAsync()
+        public async Task<List<Conta>> GetAllAsync()
         {
-            throw new NotImplementedException();
+            return await _context.Conta.ToListAsync();
         }
 
-        public Task<Conta?> GetByIdAsync(int id)
+        public async Task<Conta?> GetByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            var contaModel = await _context.Conta.Find(id);
+
+            if (contaModel == null)
+                return contaModel;
+
+            return contaModel;
         }
 
-        public Task<Conta?> UpdateAsync(int id, Conta conta)
+        public async Task<Conta?> UpdateAsync(int id, Conta conta)
         {
-            throw new NotImplementedException();
+            var contaModel = await _context.Conta.FirstOrDefault(c => c.Id == id);
+
+            if (contaModel == null)
+                return contaModel;
+
+            contaModel.Titular = conta.Titular;
+            contaModel.Tipo = conta.Tipo;
+            contaModel.Saldo = conta.Saldo;
+            await _context.SaveChangeAsync();
+
+            return contaModel;
         }
     }
 }

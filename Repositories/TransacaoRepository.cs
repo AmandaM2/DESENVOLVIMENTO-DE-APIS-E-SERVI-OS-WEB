@@ -4,21 +4,38 @@ using api.Models;
 
 namespace api.Repositories
 {
-    public class TransacaoRepository : ITransacaoRepository
+    public async class TransacaoRepository(AppDbContext context) : ITransacaoRepository
     {
-        public Task<Transacao> AddAsync(Transacao transacao)
+        private readonly AppDbContext _context = context;
+
+        public async Task<Transacao> CreateAsync(Transacao transacao)
         {
-            throw new NotImplementedException();
+            return await _context.Transacao.AddAsync(transacao);
         }
 
-        public Task<List<Transacao>> GetByContaIdAsync(int contaId)
+        public async Task<List<Transacao>> GetByContaIdAsync(int contaId)
         {
-            throw new NotImplementedException();
+            var transacoes = await _context.Transacao.Where(t => t.ContaId == contaId).ToListAsync();
+            return transacoes;
         }
 
-        public Task<Transacao?> RealizarDeposito(TransacaoDTO transacao)
+        public async Task<Transacao?> RealizarDeposito(TransacaoDTO transacao)
         {
-            throw new NotImplementedException();
+            var conta = await _context.Conta.FindAsync(transacao.ContaId);
+
+            if (conta == null)
+                return null;
+
+            conta.Saldo += transacao.Valor;
+            await _context.SaveChangesAsync();
+
+            return new Transacao
+            {
+                ContaId = transacao.ContaId,
+                Valor = transacao.Valor,
+                Data = DateTime.Now,
+                Tipo = "Depósito"
+            };
         }
 
     }

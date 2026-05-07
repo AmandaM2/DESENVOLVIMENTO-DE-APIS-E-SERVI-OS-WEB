@@ -7,7 +7,5 @@ namespace api.Interfaces
 
         string GerarToken(LoginDTO loginDto);
 
-        // Valida se as credenciais estão corretas
-        bool ValidarUsuario(LoginDTO loginDto);
     }
 }
