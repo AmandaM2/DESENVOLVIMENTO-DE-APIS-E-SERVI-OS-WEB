@@ -1,12 +1,12 @@
-using api.DTOs;
+using Api.DTOs;
+using Api.Models;
 
-namespace api.Interfaces
+
+namespace Api.Interfaces
 {
     public interface ITransacaoService
     {
-
-        string GetCodigo(int id);
-        decimal ObterSaldo(int contaId);
+        Task<decimal> ObterSaldoAsync(int contaId);
         Task RealizarDeposito(TransacaoDTO dto);
         Task RealizarSaque(TransacaoDTO dto);
     }

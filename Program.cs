@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using api.Data;         // Ajustado de Livros para api
-using api.Interfaces;   // Onde estão suas IContaRepository e IContaService
-using api.Repositories;
-using api.Services;
+using Api.Data;         // Ajustado de Livros para Api
+using Api.Interfaces;   // Onde estão suas IContaRepository e IContaService
+using Api.Repositories;
+using Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -29,9 +29,6 @@ builder.Services.AddScoped<ITransacaoService, TransacaoService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IContaRepository, ContaRepository>();
 builder.Services.AddScoped<ITransacaoRepository, TransacaoRepository>();
-
-// Registrando Services (Lógica de Saque/Depósito)
-builder.Services.AddScoped<IContaService, ContaService>();
 
 // --- 3. CONFIGURAÇÃO DO JWT (SEGURANÇA) ---
 
@@ -60,7 +57,7 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Sistema Bancário API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Sistema Bancário Api", Version = "v1" });
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {

@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using api.DTOs;
-using api.Models;
-namespace api.Interfaces
+using Api.DTOs;
+using Api.Models;
+namespace Api.Interfaces
 {
     public interface ITransacaoRepository
     {
-        Task<Transacao> AddAsync(Transacao transacao);
+        Task<Transacao> CreateAsync(Transacao transacao);
 
         // Retorna o extrato de uma conta específica
         Task<List<Transacao>> GetByContaIdAsync(int contaId);

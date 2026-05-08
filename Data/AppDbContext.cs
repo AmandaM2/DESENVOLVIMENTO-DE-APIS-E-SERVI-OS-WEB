@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using api.Models; // Certifique-se de que sua pasta de modelos se chama Banco.Models
+using Api.Models; // Certifique-se de que sua pasta de modelos se chama Banco.Models
 
-namespace api.Data
+namespace Api.Data
 {
     public class AppDbContext : DbContext
     {

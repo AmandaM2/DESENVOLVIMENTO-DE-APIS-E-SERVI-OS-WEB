@@ -1,11 +1,9 @@
-using api.DTOs;
+using Api.DTOs;
 
-namespace api.Interfaces
+namespace Api.Interfaces
 {
     public interface IAuthService
     {
-
-        string GerarToken(LoginDTO loginDto);
-
+        Task<string?> LoginAsync(LoginDTO dto);
     }
 }

@@ -1,26 +1,59 @@
 using Microsoft.AspNetCore.Mvc;
-using api.DTOs;
-using api.Interfaces;
+using Api.DTOs;
+using Api.Interfaces;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
-namespace api.Controllers
+namespace Api.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("Api/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly IAuthService _authService;
+        private readonly IContaRepository _contaRepository;
+        private readonly IConfiguration _configuration;
 
-        public AuthController(IAuthService authService)
+        // Injetando o Repositório e a Configuração (para ler o appsettings.json)
+        public AuthController(IContaRepository contaRepository, IConfiguration configuration)
         {
-            _authService = authService;
+            _contaRepository = contaRepository;
+            _configuration = configuration;
         }
 
         [HttpPost("login")]
-        public IActionResult Login([FromBody] LoginDTO login)
+        public async Task<IActionResult> Login([FromBody] LoginDTO dto)
         {
-            var token = _authService.GerarToken(login);
-            if (token == null) return Unauthorized("Usuário ou senha inválidos");
-            return Ok(new { token });
+            // 1. Busca a conta no banco usando o 'Usuario' (que estamos assumindo ser o Titular)
+            var contas = await _contaRepository.GetAllAsync();
+            var conta = contas.FirstOrDefault(c => c.Titular == dto.Usuario);
+
+            // 2. Valida a senha (Em texto puro)
+            if (conta == null || conta.Senha != dto.Senha)
+                return Unauthorized(new { Erro = "Conta ou senha inválidos." });
+
+            // 3. Fabrica o Token JWT
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]!);
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[]
+                {
+                    // GUARDAMOS O ID DA CONTA DENTRO DO TOKEN! Isso é a chave da segurança.
+                    new Claim(ClaimTypes.NameIdentifier, conta.Id.ToString()),
+                    new Claim(ClaimTypes.Name, conta.Titular)
+                }),
+                Expires = DateTime.UtcNow.AddHours(2),
+                Issuer = _configuration["Jwt:Issuer"],
+                Audience = _configuration["Jwt:Audience"],
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+
+            return Ok(new { Token = tokenHandler.WriteToken(token) });
         }
     }
 }

@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using api.DTOs;
-using api.Interfaces;
+using Api.DTOs;
+using Api.Interfaces;
 
-namespace api.Controllers
+namespace Api.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("Api/[controller]")]
     [ApiController]
     [Authorize] // Garante que só usuários logados acessem
     public class ContasController : ControllerBase

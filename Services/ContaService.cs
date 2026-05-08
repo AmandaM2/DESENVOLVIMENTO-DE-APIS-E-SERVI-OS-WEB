@@ -1,7 +1,7 @@
-using api.DTOs;
-using api.Interfaces;
-using api.Models;
-namespace api.Services
+using Api.DTOs;
+using Api.Interfaces;
+using Api.Models;
+namespace Api.Services
 {
     public class ContaService : IContaService
     {

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace api.DTOs
+namespace Api.DTOs
 {
     public class TransacaoDTO
     {

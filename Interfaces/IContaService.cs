@@ -1,8 +1,8 @@
-using api.DTOs;
-using api.Models;
+using Api.DTOs;
+using Api.Models;
 using System.Threading.Tasks;
 
-namespace api.Interfaces
+namespace Api.Interfaces
 {
     public interface IContaService
     {

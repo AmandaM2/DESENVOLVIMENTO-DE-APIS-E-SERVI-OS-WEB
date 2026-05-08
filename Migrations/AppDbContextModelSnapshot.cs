@@ -3,7 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using api.Data;
+using Api.Data;
 
 #nullable disable
 
@@ -19,7 +19,7 @@ namespace Api.Migrations
                 .HasAnnotation("ProductVersion", "10.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
-            modelBuilder.Entity("api.Models.Conta", b =>
+            modelBuilder.Entity("Api.Models.Conta", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -41,7 +41,7 @@ namespace Api.Migrations
                     b.ToTable("Contas");
                 });
 
-            modelBuilder.Entity("api.Models.Transacao", b =>
+            modelBuilder.Entity("Api.Models.Transacao", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -67,9 +67,9 @@ namespace Api.Migrations
                     b.ToTable("Transacoes");
                 });
 
-            modelBuilder.Entity("api.Models.Transacao", b =>
+            modelBuilder.Entity("Api.Models.Transacao", b =>
                 {
-                    b.HasOne("api.Models.Conta", "Conta")
+                    b.HasOne("Api.Models.Conta", "Conta")
                         .WithMany("Transacoes")
                         .HasForeignKey("ContaId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -78,7 +78,7 @@ namespace Api.Migrations
                     b.Navigation("Conta");
                 });
 
-            modelBuilder.Entity("api.Models.Conta", b =>
+            modelBuilder.Entity("Api.Models.Conta", b =>
                 {
                     b.Navigation("Transacoes");
                 });
