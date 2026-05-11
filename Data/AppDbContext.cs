@@ -13,5 +13,6 @@ namespace Api.Data
 
         // Representa a tabela de Transações (Saques e Depósitos)
         public DbSet<Transacao> Transacoes { get; set; }
+        public DbSet<Usuario> Usuarios { get; set; }
     }
 }

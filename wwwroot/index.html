@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Meu Banco Digital</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f4f4f9;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                margin: 0;
+            }
+            .card {
+                background: white;
+                padding: 20px 30px;
+                border-radius: 10px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                width: 300px;
+                text-align: center;
+            }
+            input,
+            button {
+                width: 100%;
+                margin: 10px 0;
+                padding: 10px;
+                box-sizing: border-box;
+                border-radius: 5px;
+                border: 1px solid #ccc;
+            }
+            button {
+                background-color: #0056b3;
+                color: white;
+                border: none;
+                cursor: pointer;
+                font-weight: bold;
+            }
+            button:hover {
+                background-color: #004494;
+            }
+            .btn-sacar {
+                background-color: #dc3545;
+            }
+            .btn-sacar:hover {
+                background-color: #c82333;
+            }
+            .btn-depositar {
+                background-color: #28a745;
+            }
+            .btn-depositar:hover {
+                background-color: #218838;
+            }
+            #dashboard {
+                display: none;
+            }
+            .erro {
+                color: red;
+                font-size: 14px;
+                margin-bottom: 10px;
+            }
+            .sucesso {
+                color: green;
+                font-size: 14px;
+                margin-bottom: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="loginScreen" class="card">
+            <h2>Acesso à Conta</h2>
+            <input
+                type="text"
+                id="loginUsuario"
+                placeholder="Titular da Conta"
+            />
+            <input type="password" id="loginSenha" placeholder="Senha" />
+            <button onclick="fazerLogin()">Entrar</button>
+            <div id="loginMensagem" class="erro"></div>
+        </div>
+
+        <div id="dashboard" class="card">
+            <h2>Bem-vindo!</h2>
+            <input
+                type="number"
+                id="contaId"
+                placeholder="ID da sua Conta"
+                required
+            />
+
+            <h3>Saldo: R$ <span id="saldoAtual">0.00</span></h3>
+
+            <input
+                type="number"
+                id="valorTransacao"
+                placeholder="Valor (R$)"
+                min="0.01"
+                step="0.01"
+            />
+
+            <button class="btn-sacar" onclick="realizarTransacao('sacar')">
+                Sacar
+            </button>
+            <button
+                class="btn-depositar"
+                onclick="realizarTransacao('depositar')"
+            >
+                Depositar
+            </button>
+
+            <div id="transacaoMensagem"></div>
+        </div>
+
+        <script>
+            // 1. Ajuste a porta se necessário (vi que a sua era 5250)
+            const API_URL = "http://localhost:5250/Api";
+
+            // FUNÇÃO DE LOGIN
+            async function fazerLogin() {
+                const usuario = document.getElementById("loginUsuario").value;
+                const senha = document.getElementById("loginSenha").value;
+                const msgLogin = document.getElementById("loginMensagem");
+
+                try {
+                    const response = await fetch(`${API_URL}/Auth/login`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        // Ajustado para 'Usuario' e 'Senha' com maiúsculo para bater com seu DTO
+                        body: JSON.stringify({
+                            Usuario: usuario,
+                            Senha: senha,
+                        }),
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        localStorage.setItem("token_banco", data.token);
+                        document.getElementById("loginScreen").style.display =
+                            "none";
+                        document.getElementById("dashboard").style.display =
+                            "block";
+                    } else {
+                        msgLogin.innerText =
+                            data.erro || "Usuário ou senha incorretos";
+                    }
+                } catch (error) {
+                    msgLogin.innerText = "Erro ao conectar com o servidor.";
+                }
+            }
+
+            // FUNÇÃO DE TRANSAÇÃO (SAQUE/DEPÓSITO)
+            async function realizarTransacao(tipo) {
+                const valor = parseFloat(
+                    document.getElementById("valorTransacao").value,
+                );
+                const contaId = parseInt(
+                    document.getElementById("contaId").value,
+                );
+                const token = localStorage.getItem("token_banco");
+                const msgBox = document.getElementById("transacaoMensagem");
+
+                try {
+                    const response = await fetch(
+                        `${API_URL}/Transacoes/${tipo}`,
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`,
+                            },
+                            body: JSON.stringify({
+                                ContaId: contaId,
+                                Valor: valor,
+                                TipoOperacao: tipo, // Aqui enviamos 'sacar' ou 'depositar' como string!
+                            }),
+                        },
+                    );
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        msgBox.className = "sucesso";
+                        msgBox.innerText = data.mensagem;
+                        if (data.novoSaldo !== undefined) {
+                            document.getElementById("saldoAtual").innerText =
+                                data.novoSaldo.toFixed(2);
+                        }
+                    } else {
+                        msgBox.className = "erro";
+                        // Mostra o erro exato que o C# devolveu
+                        msgBox.innerText =
+                            data.erro || "Erro na validação dos dados.";
+                    }
+                } catch (error) {
+                    msgBox.className = "erro";
+                    msgBox.innerText = "Erro de conexão.";
+                }
+            }
+        </script>
+    </body>
+</html>

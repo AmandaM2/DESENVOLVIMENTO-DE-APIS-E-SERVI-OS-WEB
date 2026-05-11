@@ -1,38 +1,33 @@
 using Microsoft.EntityFrameworkCore;
-using Api.Data;         // Ajustado de Livros para Api
-using Api.Interfaces;   // Onde estão suas IContaRepository e IContaService
+using Api.Data;
+using Api.Interfaces;
 using Api.Repositories;
 using Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // --- 1. CONFIGURAÇÃO DE SERVIÇOS ---
-
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// Configuração do Banco de Dados MySQL (Pomelo)
-// Ajustado para usar "DefaultConnection" que configuramos no appsettings.json
-
+// Configuração do MySQL
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySQL($"{builder.Configuration.GetConnectionString("ConexaoPadrao")}"));
+    options.UseMySQL(builder.Configuration.GetConnectionString("ConexaoPadrao") ?? ""));
 
-// --- 2. INJEÇÃO DE DEPENDÊNCIA (SISTEMA BANCÁRIO) ---
-
-// Registrando Repositórios
+// --- 2. INJEÇÃO DE DEPENDÊNCIA ---
+builder.Services.AddScoped<IContaRepository, ContaRepository>();
+builder.Services.AddScoped<ITransacaoRepository, TransacaoRepository>();
 builder.Services.AddScoped<IContaService, ContaService>();
 builder.Services.AddScoped<ITransacaoService, TransacaoService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IContaRepository, ContaRepository>();
-builder.Services.AddScoped<ITransacaoRepository, TransacaoRepository>();
+builder.Services.AddScoped<ITokenService, TokenService>();
 
-// --- 3. CONFIGURAÇÃO DO JWT (SEGURANÇA) ---
-
-var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"] ?? "SenhaSuperSecretaDePeloMenos32Caracteres");
+// --- 3. CONFIGURAÇÃO DO JWT ---
+var jwtKey = builder.Configuration["Jwt:Key"] ?? "ChaveMestraSuperSecretaComMaisDe32Caracteres";
+var keyBytes = Encoding.ASCII.GetBytes(jwtKey);
 
 builder.Services.AddAuthentication(options =>
 {
@@ -44,21 +39,21 @@ builder.Services.AddAuthentication(options =>
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(key),
+        IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
         ValidateIssuer = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidateAudience = true,
         ValidAudience = builder.Configuration["Jwt:Audience"],
-        ClockSkew = TimeSpan.Zero // Remove o atraso na expiração do token
+        ClockSkew = TimeSpan.Zero
     };
 });
 
-// --- 4. SWAGGER COM BOTÃO DE CADEADO ---
-
+// --- 4. SWAGGER COM CADEADO (CORRIGIDO) ---
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Sistema Bancário Api", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Sistema Bancário API", Version = "v1" });
 
+    // Definir como o Swagger deve descrever o esquema de segurança
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -69,16 +64,26 @@ builder.Services.AddSwaggerGen(c =>
         Description = "Insira o token JWT desta forma: Bearer {seu token}"
     });
 
-    c.AddSecurityRequirement(doc => new OpenApiSecurityRequirement
+    // Aplicar a segurança a todos os endpoints
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
-        [new OpenApiSecuritySchemeReference("bearer", doc)] = []
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
     });
 });
 
 var app = builder.Build();
 
-// --- 5. PIPELINE DE EXECUÇÃO (MIDDLEWARES) ---
-
+// --- 5. PIPELINE DE EXECUÇÃO ---
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -87,7 +92,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// ORDEM IMPORTANTE: Autenticação primeiro, depois Autorização
+// CORS deve vir ANTES da Autenticação
+app.UseCors(options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+
 app.UseAuthentication();
 app.UseAuthorization();
 
