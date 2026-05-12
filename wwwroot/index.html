@@ -83,12 +83,6 @@
 
         <div id="dashboard" class="card">
             <h2>Bem-vindo!</h2>
-            <input
-                type="number"
-                id="contaId"
-                placeholder="ID da sua Conta"
-                required
-            />
 
             <h3>Saldo: R$ <span id="saldoAtual">0.00</span></h3>
 
@@ -156,10 +150,9 @@
                 const valor = parseFloat(
                     document.getElementById("valorTransacao").value,
                 );
-                const contaId = parseInt(
-                    document.getElementById("contaId").value,
-                );
+
                 const token = localStorage.getItem("token_banco");
+
                 const msgBox = document.getElementById("transacaoMensagem");
 
                 try {
@@ -172,9 +165,8 @@
                                 Authorization: `Bearer ${token}`,
                             },
                             body: JSON.stringify({
-                                ContaId: contaId,
                                 Valor: valor,
-                                TipoOperacao: tipo, // Aqui enviamos 'sacar' ou 'depositar' como string!
+                                TipoOperacao: tipo,
                             }),
                         },
                     );
@@ -183,20 +175,23 @@
 
                     if (response.ok) {
                         msgBox.className = "sucesso";
-                        msgBox.innerText = data.mensagem;
+
+                        msgBox.innerText =
+                            data.mensagem || "Operação realizada com sucesso.";
+
                         if (data.novoSaldo !== undefined) {
                             document.getElementById("saldoAtual").innerText =
                                 data.novoSaldo.toFixed(2);
                         }
                     } else {
                         msgBox.className = "erro";
-                        // Mostra o erro exato que o C# devolveu
+
                         msgBox.innerText =
-                            data.erro || "Erro na validação dos dados.";
+                            data.erro || data.Erro || "Erro na transação.";
                     }
                 } catch (error) {
                     msgBox.className = "erro";
-                    msgBox.innerText = "Erro de conexão.";
+                    msgBox.innerText = "Erro de conexão com a API.";
                 }
             }
         </script>
