@@ -1,10 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Api.DTOs;
 using Api.Interfaces;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+using System.Threading.Tasks;
+using System;
 
 namespace Api.Controllers
 {
@@ -13,47 +11,32 @@ namespace Api.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IContaRepository _contaRepository;
-        private readonly IConfiguration _configuration;
+        private readonly ITokenService _tokenService; // Injetando o serviço de token que corrigimos!
 
-        // Injetando o Repositório e a Configuração (para ler o appsettings.json)
-        public AuthController(IContaRepository contaRepository, IConfiguration configuration)
+        // Atualizado o construtor para receber o ITokenService no lugar do IConfiguration
+        public AuthController(IContaRepository contaRepository, ITokenService tokenService)
         {
             _contaRepository = contaRepository;
-            _configuration = configuration;
+            _tokenService = tokenService;
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDTO dto)
         {
-            // 1. Busca a conta no banco usando o 'Usuario' (que estamos assumindo ser o Titular)
-            var contas = await _contaRepository.GetAllAsync();
-            var conta = contas.FirstOrDefault(c => c.Titular == dto.Usuario);
+            // 1. Busca a conta usando o método otimizado que já traz o Usuário junto (via Include)
+            var conta = await _contaRepository.GetByTitularAsync(dto.Usuario);
 
-            // 2. Valida a senha (Em texto puro)
-            if (conta == null || conta.Senha != dto.Senha)
-                return Unauthorized(new { Erro = "Conta ou senha inválidos." });
-
-            // 3. Fabrica o Token JWT
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]!);
-
-            var tokenDescriptor = new SecurityTokenDescriptor
+            // 2. Valida se a conta existe, se o usuário está vinculado e se a senha bate
+            if (conta == null || conta.Usuario == null || conta.Usuario.Senha != dto.Senha)
             {
-                Subject = new ClaimsIdentity(new[]
-                {
-                    // GUARDAMOS O ID DA CONTA DENTRO DO TOKEN! Isso é a chave da segurança.
-                    new Claim(ClaimTypes.NameIdentifier, conta.Id.ToString()),
-                    new Claim(ClaimTypes.Name, conta.Titular)
-                }),
-                Expires = DateTime.UtcNow.AddHours(2),
-                Issuer = _configuration["Jwt:Issuer"],
-                Audience = _configuration["Jwt:Audience"],
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            };
+                return Unauthorized(new { Erro = "Usuário ou senha inválidos." });
+            }
 
-            var token = tokenHandler.CreateToken(tokenDescriptor);
+            // 3. Delega a fabricação do Token JWT para o TokenService, passando o Usuario correto
+            var tokenString = _tokenService.GerarToken(conta.Usuario);
 
-            return Ok(new { Token = tokenHandler.WriteToken(token) });
+            // Retorna o token gerado com sucesso
+            return Ok(new { Token = tokenString });
         }
     }
 }

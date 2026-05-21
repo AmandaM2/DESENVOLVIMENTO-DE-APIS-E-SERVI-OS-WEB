@@ -16,7 +16,7 @@ namespace Api.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.7")
+                .HasAnnotation("ProductVersion", "8.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             modelBuilder.Entity("Api.Models.Conta", b =>
@@ -28,19 +28,17 @@ namespace Api.Migrations
                     b.Property<decimal>("Saldo")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("Senha")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
                     b.Property<string>("Tipo")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("Titular")
-                        .IsRequired()
-                        .HasColumnType("longtext");
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("UsuarioId")
+                        .IsUnique();
 
                     b.ToTable("Contas");
                 });
@@ -76,10 +74,11 @@ namespace Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<int?>("ContaId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Cpf")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("longtext");
 
@@ -93,9 +92,18 @@ namespace Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ContaId");
-
                     b.ToTable("Usuarios");
+                });
+
+            modelBuilder.Entity("Api.Models.Conta", b =>
+                {
+                    b.HasOne("Api.Models.Usuario", "Usuario")
+                        .WithOne("Conta")
+                        .HasForeignKey("Api.Models.Conta", "UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("Api.Models.Transacao", b =>
@@ -109,18 +117,14 @@ namespace Api.Migrations
                     b.Navigation("Conta");
                 });
 
-            modelBuilder.Entity("Api.Models.Usuario", b =>
-                {
-                    b.HasOne("Api.Models.Conta", "Conta")
-                        .WithMany()
-                        .HasForeignKey("ContaId");
-
-                    b.Navigation("Conta");
-                });
-
             modelBuilder.Entity("Api.Models.Conta", b =>
                 {
                     b.Navigation("Transacoes");
+                });
+
+            modelBuilder.Entity("Api.Models.Usuario", b =>
+                {
+                    b.Navigation("Conta");
                 });
 #pragma warning restore 612, 618
         }

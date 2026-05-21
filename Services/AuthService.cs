@@ -1,14 +1,16 @@
 using Api.DTOs;
 using Api.Interfaces;
+using System;
+using System.Threading.Tasks;
 
 namespace Api.Services
 {
     public class AuthService : IAuthService
     {
         private readonly IContaRepository _contaRepository;
-        private readonly ITokenService _tokenService; // Adicionamos o serviço de token
+        private readonly ITokenService _tokenService;
 
-        // Injetamos ambos no construtor
+        // Construtor injetando os repositórios e serviços necessários
         public AuthService(IContaRepository contaRepository, ITokenService tokenService)
         {
             _contaRepository = contaRepository;
@@ -17,21 +19,20 @@ namespace Api.Services
 
         public async Task<string?> LoginAsync(LoginDTO dto)
         {
-            // 1. Busca a conta pelo titular (ajustado para dto.Usuario)
+            // 1. Busca a conta pelo nome do usuário (o repositório já faz o Include do Usuário)
             var conta = await _contaRepository.GetByTitularAsync(dto.Usuario);
 
-            // 2. Valida se a conta existe e se a senha bate
-            if (conta == null || conta.Senha != dto.Senha)
+            // 2. CORREÇÃO (Linha 24): A propriedade 'Senha' mudou da 'Conta' para o 'Usuario'
+            if (conta == null || conta.Usuario == null || conta.Usuario.Senha != dto.Senha)
             {
-                return null; // Retorna nulo se as credenciais forem inválidas
+                return null; // Credenciais inválidas
             }
 
-            // 3. AGORA SIM: Usa o TokenService real para gerar o JWT
-            return _tokenService.GerarToken(conta);
+            // 3. CORREÇÃO (Linha 30): O TokenService foi atualizado para receber a entidade 'Usuario'
+            return _tokenService.GerarToken(conta.Usuario);
         }
 
-        // Você pode remover ou manter esses métodos abaixo como privados,
-        // mas o LoginAsync acima é o que realmente faz o trabalho agora.
+        // Métodos da interface mantidos para evitar erros de contrato
         public string GerarToken(LoginDTO loginDto) => throw new NotImplementedException("Use o ITokenService");
         public bool ValidarUsuario(LoginDTO loginDto) => throw new NotImplementedException();
     }

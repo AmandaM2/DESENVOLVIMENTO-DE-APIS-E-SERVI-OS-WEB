@@ -1,18 +1,23 @@
 ﻿using System.Collections.Generic;
-namespace Api.Models;
 
-public class Conta
+namespace Api.Models
 {
-    public int Id { get; set; }
-    public string Titular { get; set; } = string.Empty;
+    public class Conta
+    {
+        // Construtor vazio obrigatório para o Entity Framework e inicializadores
+        public Conta()
+        {
+        }
 
-    public string Senha { get; set; } = string.Empty;
+        public int Id { get; set; }
+        public string Tipo { get; set; } = string.Empty;
+        public decimal Saldo { get; set; }
 
-    // Tipos: "Corrente", "Poupança" ou "Empresarial"
-    public string Tipo { get; set; } = string.Empty;
+        // Vinculando a Conta ao Usuário (Chave Estrangeira explícita)
+        public int UsuarioId { get; set; }
+        public Usuario? Usuario { get; set; }
 
-    public decimal Saldo { get; set; }
-
-    // Relacionamento: Uma conta pode ter muitas transações
-    public ICollection<Transacao> Transacoes { get; set; } = new List<Transacao>();
+        // Relacionamento: Uma conta pode ter muitas transações
+        public ICollection<Transacao> Transacoes { get; set; } = new List<Transacao>();
+    }
 }

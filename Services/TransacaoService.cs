@@ -2,6 +2,9 @@ using Api.DTOs;
 using Api.Interfaces;
 using Api.Models;
 using Api.Repositories;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Api.Services
 {
@@ -51,7 +54,6 @@ namespace Api.Services
             decimal taxa = 0;
             if (conta.Tipo == "Corrente") taxa = 5.00m;
             else if (conta.Tipo == "Empresarial") taxa = 10.00m;
-            // Poupança = 0.00m
 
             decimal valorTotalSaque = dto.Valor + taxa;
 
@@ -74,5 +76,11 @@ namespace Api.Services
             await _transacaoRepository.CreateAsync(transacao);
         }
 
+        // 📜 ADICIONADO: Método de Extrato exigido pelo TransacoesController
+        public async Task<List<Transacao>> ObterExtratoAsync(int contaId)
+        {
+            // Busca o histórico chamando seu repositório de transações
+            return await _transacaoRepository.GetByContaIdAsync(contaId);
+        }
     }
 }

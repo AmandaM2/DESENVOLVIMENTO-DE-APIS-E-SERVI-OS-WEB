@@ -1,9 +1,9 @@
 using Api.Models;
 
-namespace Api.Interfaces
+namespace Api.Interfaces;
+
+public interface ITokenService
 {
-    public interface ITokenService
-    {
-        string GerarToken(Conta conta);
-    }
+    // Altere de 'Conta conta' para 'Usuario usuario'
+    string GerarToken(Usuario usuario);
 }

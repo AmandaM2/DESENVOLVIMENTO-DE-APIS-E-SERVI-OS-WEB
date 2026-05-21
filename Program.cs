@@ -9,16 +9,25 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
-
 var builder = WebApplication.CreateBuilder(args);
 
 // --- 1. CONFIGURAÇÃO DE SERVIÇOS ---
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// Configuração do MySQL
+// CORREÇÃO SEGURA PARA PRODUÇÃO:
+// Primeiro, tenta ler a string de conexão das variáveis de ambiente da nuvem.
+// Se não encontrar (ambiente local), usa o "ConexaoPadrao" do appsettings.json.
+var connectionString = Environment.GetEnvironmentVariable("MYSQL_URL")
+                      ?? builder.Configuration.GetConnectionString("ConexaoPadrao");
+
+if (string.IsNullOrEmpty(connectionString))
+{
+    throw new InvalidOperationException("A string de conexão com o banco de dados não foi encontrada.");
+}
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySQL(builder.Configuration.GetConnectionString("ConexaoPadrao") ?? ""));
+    options.UseMySQL(connectionString));
 
 // --- 2. INJEÇÃO DE DEPENDÊNCIA ---
 builder.Services.AddScoped<IContaRepository, ContaRepository>();
@@ -51,12 +60,11 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// --- 4. SWAGGER COM CADEADO (CORRIGIDO) ---
+// --- 4. SWAGGER COM CADEADO ---
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Sistema Bancário API", Version = "v1" });
 
-    // Definir como o Swagger deve descrever o esquema de segurança
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -67,7 +75,6 @@ builder.Services.AddSwaggerGen(c =>
         Description = "Insira o token JWT desta forma: Bearer {seu token}"
     });
 
-    // Aplicar a segurança a todos os endpoints
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -87,11 +94,13 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 // --- 5. PIPELINE DE EXECUÇÃO ---
-if (app.Environment.IsDevelopment())
+// ATENÇÃO: Removemos a trava do IsDevelopment para o Swagger ficar visível online na banca!
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Sistema Bancário API v1");
+    c.RoutePrefix = string.Empty; // Faz o Swagger abrir direto na URL principal do site publicado
+});
 
 app.UseHttpsRedirection();
 

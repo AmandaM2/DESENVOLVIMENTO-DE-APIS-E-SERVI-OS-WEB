@@ -13,7 +13,6 @@ namespace Api.Controllers
     [Authorize] // Garante que só usuários logados acessem a Controller...
     public class ContasController : ControllerBase
     {
-        // Alterado para IContaRepository para usarmos o que já está pronto e funcionando!
         private readonly IContaRepository _repository;
 
         public ContasController(IContaRepository repository)
@@ -29,33 +28,38 @@ namespace Api.Controllers
             return Ok(conta);
         }
 
-        [AllowAnonymous] // A MÁGICA AQUI: Permite que pessoas sem login acessem apenas este método!
+        [AllowAnonymous] // Permite que pessoas sem login acessem para se cadastrar
         [HttpPost("criar")]
         public async Task<IActionResult> CriarConta([FromBody] ContaCreateDTO novaConta)
         {
             try
             {
-                // Verifica se já existe alguém com esse nome para não dar erro no Login
+                // Verifica se já existe uma conta com este titular
                 var contaExistente = await _repository.GetByTitularAsync(novaConta.Titular);
                 if (contaExistente != null)
                 {
                     return BadRequest(new { erro = "Já existe uma conta com este titular. Escolha outro nome." });
                 }
 
-                // Cria a conta de fato
-                var contaCriada = await _repository.CreateAsync(
-                    new Conta
+                // CORREÇÃO: Instanciando a Conta e o Usuário de forma interligada
+                var contaParaCriar = new Conta
+                {
+                    Tipo = novaConta.Tipo,
+                    Saldo = novaConta.Saldo,
+                    Usuario = new Usuario
                     {
-                        Titular = novaConta.Titular,
-                        Senha = novaConta.Senha,
-                        Tipo = novaConta.Tipo,
-                        Saldo = novaConta.Saldo
+                        Nome = novaConta.Titular,
+                        Email = novaConta.Titular.Contains("@") ? novaConta.Titular : $"{novaConta.Titular.ToLower()}@banco.com",
+                        Senha = novaConta.Senha // Caso use hash futuramente (ex: BCrypt), aplique-o aqui
                     }
-                );
+                };
+
+                // Envia a estrutura completa para o repositório salvar
+                var contaCriada = await _repository.CreateAsync(contaParaCriar);
 
                 return Ok(new
                 {
-                    mensagem = "Conta criada com sucesso! Agora você já pode fazer login.",
+                    mensagem = "Conta e usuário criados com sucesso! Agora você já pode fazer login.",
                     id = contaCriada.Id
                 });
             }

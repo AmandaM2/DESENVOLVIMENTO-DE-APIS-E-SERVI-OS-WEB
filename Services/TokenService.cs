@@ -8,7 +8,6 @@ using System.Text;
 namespace Api.Services;
 
 public class TokenService : ITokenService
-
 {
     private readonly IConfiguration _configuration;
 
@@ -17,7 +16,8 @@ public class TokenService : ITokenService
         _configuration = configuration;
     }
 
-    public string GerarToken(Conta conta)
+    // Alterado de 'Conta conta' para 'Usuario usuario'
+    public string GerarToken(Usuario usuario)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"] ?? "ChaveMestraSuperSecretaComMaisDe32Caracteres");
@@ -26,10 +26,11 @@ public class TokenService : ITokenService
         {
             Subject = new ClaimsIdentity(new[]
             {
-                    new Claim(ClaimTypes.Name, conta.Titular),
-                    new Claim(ClaimTypes.NameIdentifier, conta.Id.ToString()),
-                    new Claim("TipoConta", conta.Tipo)
-                }),
+                // Usando os dados corretos da entidade Usuario
+                new Claim(ClaimTypes.Name, usuario.Nome),
+                new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
+                new Claim(ClaimTypes.Email, usuario.Email)
+            }),
             Expires = DateTime.UtcNow.AddHours(2),
             SigningCredentials = new SigningCredentials(
                 new SymmetricSecurityKey(key),
