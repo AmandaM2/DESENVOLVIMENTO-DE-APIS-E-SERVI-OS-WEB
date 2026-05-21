@@ -12,7 +12,10 @@ namespace Api.Interfaces
         Task<bool> DepositarAsync(TransacaoDTO transacaoDto);
 
         Task<decimal> ObterSaldoAsync(int contaId);
+
         Task<Conta?> BuscarPorId(int contaId);
-        Task<Conta> CriarConta(ContaDTO conta);
+
+        // 🛠️ CORRIGIDO: Alterado de ContaDTO para ContaCreateDTO para alinhar com o Serviço
+        Task<Conta> CriarConta(ContaCreateDTO conta);
     }
 }
