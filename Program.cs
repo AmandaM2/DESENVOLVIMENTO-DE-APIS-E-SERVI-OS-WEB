@@ -18,8 +18,7 @@ builder.Services.AddEndpointsApiExplorer();
 // CORREÇÃO SEGURA PARA PRODUÇÃO:
 // Primeiro, tenta ler a string de conexão das variáveis de ambiente da nuvem.
 // Se não encontrar (ambiente local), usa o "ConexaoPadrao" do appsettings.json.
-var connectionString = Environment.GetEnvironmentVariable("MYSQL_URL")
-                      ?? builder.Configuration.GetConnectionString("ConexaoPadrao");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 if (string.IsNullOrEmpty(connectionString))
 {
@@ -38,8 +37,8 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 
 // --- 3. CONFIGURAÇÃO DO JWT ---
-var jwtKey = builder.Configuration["Jwt:Key"] ?? "ChaveMestraSuperSecretaComMaisDe32Caracteres";
-var keyBytes = Encoding.ASCII.GetBytes(jwtKey);
+var jwtKey = builder.Configuration["Key"];
+var keyBytes = Encoding.ASCII.GetBytes($"{jwtKey}");
 
 builder.Services.AddAuthentication(options =>
 {
@@ -92,6 +91,9 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+app.UseDefaultFiles();
+app.UseStaticFiles();
 
 // --- 5. PIPELINE DE EXECUÇÃO ---
 // ATENÇÃO: Removemos a trava do IsDevelopment para o Swagger ficar visível online na banca!
