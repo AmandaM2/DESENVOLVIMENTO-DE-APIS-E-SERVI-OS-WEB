@@ -12,7 +12,7 @@
             <input
                 type="text"
                 id="loginUsuario"
-                placeholder="Titular da Conta"
+                placeholder="Nome de Usuário"
             />
             <input type="password" id="loginSenha" placeholder="Senha" />
             <button onclick="fazerLogin()">Entrar</button>
@@ -24,11 +24,28 @@
 
         <div id="cadastroScreen" class="card">
             <h2>Criar Conta Bancária</h2>
-            <input type="text" id="cadUsuario" placeholder="Nome de Usuário" />
+            <input
+                type="text"
+                id="cadUsuario"
+                placeholder="Escolha um Nome de Usuário"
+            />
+            <input type="email" id="cadEmail" placeholder="Seu Melhor E-mail" />
+            <input
+                type="text"
+                id="cadCpf"
+                placeholder="CPF (Apenas 11 dígitos)"
+                maxlength="11"
+            />
+
+            <select id="cadTipoConta" class="select-banco">
+                <option value="Corrente">Conta Corrente</option>
+                <option value="Poupança">Conta Poupança</option>
+            </select>
+
             <input
                 type="password"
                 id="cadSenha"
-                placeholder="Escolha uma Senha"
+                placeholder="Senha (Mínimo 8 caracteres, A-z, 0-9, $...)"
             />
             <button class="btn-depositar" onclick="fazerCadastro()">
                 Cadastrar
@@ -40,26 +57,81 @@
         </div>
 
         <div id="dashboard" class="card">
-            <h2>Olá, <span id="nomeUsuario">Usuário</span>!</h2>
-            <h3>Saldo: R$ <span id="saldoAtual">0.00</span></h3>
+            <div class="header-dashboard">
+                <h2>Olá, <span id="nomeUsuario">Usuário</span>!</h2>
+                <span id="tipoContaBadge" class="badge">Conta</span>
+            </div>
 
-            <input
-                type="number"
-                id="valorTransacao"
-                placeholder="Valor (R$)"
-                min="0.01"
-                step="0.01"
-            />
+            <div class="painel-valores">
+                <div class="item-valor">
+                    <h3>Saldo Disponível:</h3>
+                    <p>R$ <span id="saldoAtual">0.00</span></p>
+                </div>
+                <div class="item-valor">
+                    <h3>Limite do Cartão:</h3>
+                    <p class="texto-limite">
+                        R$ <span id="limiteCartao">0.00</span>
+                    </p>
+                </div>
+                <div class="item-valor">
+                    <h3>Guardado no Cofrinho:</h3>
+                    <p class="texto-cofrinho">
+                        R$ <span id="saldoCofrinho">0.00</span>
+                    </p>
+                </div>
+            </div>
 
-            <button class="btn-sacar" onclick="realizarTransacao('sacar')">
-                Sacar
-            </button>
-            <button
-                class="btn-depositar"
-                onclick="realizarTransacao('depositar')"
-            >
-                Depositar
-            </button>
+            <hr class="divisor" />
+
+            <div class="secao-operacao">
+                <h3>Movimentar Conta</h3>
+                <input
+                    type="number"
+                    id="valorTransacao"
+                    placeholder="Valor (R$)"
+                    min="0.01"
+                    step="0.01"
+                />
+                <div class="grupo-botoes">
+                    <button
+                        class="btn-sacar"
+                        onclick="realizarTransacao('sacar')"
+                    >
+                        Sacar
+                    </button>
+                    <button
+                        class="btn-depositar"
+                        onclick="realizarTransacao('depositar')"
+                    >
+                        Depositar
+                    </button>
+                </div>
+            </div>
+
+            <div class="secao-operacao">
+                <h3>Meu Cofrinho</h3>
+                <input
+                    type="number"
+                    id="valorCofrinho"
+                    placeholder="Valor para poupar/resgatar (R$)"
+                    min="0.01"
+                    step="0.01"
+                />
+                <div class="grupo-botoes">
+                    <button
+                        class="btn-guardar"
+                        onclick="operarCofrinho('guardar')"
+                    >
+                        Poupar Dinheiro
+                    </button>
+                    <button
+                        class="btn-resgatar"
+                        onclick="operarCofrinho('resgatar')"
+                    >
+                        Resgatar do Cofrinho
+                    </button>
+                </div>
+            </div>
 
             <div id="transacaoMensagem"></div>
 

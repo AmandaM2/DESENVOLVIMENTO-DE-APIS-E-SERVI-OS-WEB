@@ -89,30 +89,20 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll", b => b.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
-});
 
 var app = builder.Build();
-app.UseCors("AllowAll");
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
 // --- 5. PIPELINE DE EXECUÇÃO ---
-// ATENÇÃO: Removemos a trava do IsDevelopment para o Swagger ficar visível online na banca!
-app.UseSwagger();
-app.UseSwaggerUI(c =>
+if (app.Environment.IsDevelopment())
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Sistema Bancário API v1");
-    c.RoutePrefix = string.Empty; // Faz o Swagger abrir direto na URL principal do site publicado
-});
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseHttpsRedirection();
-
-// CORS deve vir ANTES da Autenticação
-app.UseCors(options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 
 app.UseAuthentication();
 app.UseAuthorization();

@@ -17,6 +17,9 @@ namespace Api.Models
         public int UsuarioId { get; set; }
         public Usuario? Usuario { get; set; }
 
+        public decimal LimiteCartao { get; set; }
+        public decimal Cofrinho { get; set; }
+
         // Relacionamento: Uma conta pode ter muitas transações
         public ICollection<Transacao> Transacoes { get; set; } = new List<Transacao>();
     }
