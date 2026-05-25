@@ -1,0 +1,91 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.card {
+    background: white;
+    padding: 20px 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 320px;
+    text-align: center;
+}
+
+input,
+button {
+    width: 100%;
+    margin: 10px 0;
+    padding: 10px;
+    box-sizing: border-box;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+button {
+    background-color: #0056b3;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+button:hover {
+    background-color: #004494;
+}
+
+.btn-sacar {
+    background-color: #dc3545;
+}
+
+.btn-sacar:hover {
+    background-color: #c82333;
+}
+
+.btn-depositar {
+    background-color: #28a745;
+}
+
+.btn-depositar:hover {
+    background-color: #218838;
+}
+
+.btn-logout {
+    background-color: #6c757d;
+    margin-top: 20px;
+}
+
+.btn-logout:hover {
+    background-color: #5a6268;
+}
+
+/* Controle de Exibição das Telas */
+#cadastroScreen,
+#dashboard {
+    display: none;
+}
+
+.erro {
+    color: red;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.sucesso {
+    color: green;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.link-alternativo {
+    margin-top: 15px;
+    font-size: 14px;
+    color: #0056b3;
+    cursor: pointer;
+    text-decoration: underline;
+}

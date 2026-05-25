@@ -4,69 +4,7 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Meu Banco Digital</title>
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                background-color: #f4f4f9;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                height: 100vh;
-                margin: 0;
-            }
-            .card {
-                background: white;
-                padding: 20px 30px;
-                border-radius: 10px;
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-                width: 300px;
-                text-align: center;
-            }
-            input,
-            button {
-                width: 100%;
-                margin: 10px 0;
-                padding: 10px;
-                box-sizing: border-box;
-                border-radius: 5px;
-                border: 1px solid #ccc;
-            }
-            button {
-                background-color: #0056b3;
-                color: white;
-                border: none;
-                cursor: pointer;
-                font-weight: bold;
-            }
-            button:hover {
-                background-color: #004494;
-            }
-            .btn-sacar {
-                background-color: #dc3545;
-            }
-            .btn-sacar:hover {
-                background-color: #c82333;
-            }
-            .btn-depositar {
-                background-color: #28a745;
-            }
-            .btn-depositar:hover {
-                background-color: #218838;
-            }
-            #dashboard {
-                display: none;
-            }
-            .erro {
-                color: red;
-                font-size: 14px;
-                margin-bottom: 10px;
-            }
-            .sucesso {
-                color: green;
-                font-size: 14px;
-                margin-bottom: 10px;
-            }
-        </style>
+        <link rel="stylesheet" href="style.css" />
     </head>
     <body>
         <div id="loginScreen" class="card">
@@ -79,11 +17,30 @@
             <input type="password" id="loginSenha" placeholder="Senha" />
             <button onclick="fazerLogin()">Entrar</button>
             <div id="loginMensagem" class="erro"></div>
+            <div class="link-alternativo" onclick="mudarTela('cadastroScreen')">
+                Não tem conta? Cadastre-se
+            </div>
+        </div>
+
+        <div id="cadastroScreen" class="card">
+            <h2>Criar Conta Bancária</h2>
+            <input type="text" id="cadUsuario" placeholder="Nome de Usuário" />
+            <input
+                type="password"
+                id="cadSenha"
+                placeholder="Escolha uma Senha"
+            />
+            <button class="btn-depositar" onclick="fazerCadastro()">
+                Cadastrar
+            </button>
+            <div id="cadastroMensagem"></div>
+            <div class="link-alternativo" onclick="mudarTela('loginScreen')">
+                Voltar para o Login
+            </div>
         </div>
 
         <div id="dashboard" class="card">
-            <h2>Bem-vindo!</h2>
-
+            <h2>Olá, <span id="nomeUsuario">Usuário</span>!</h2>
             <h3>Saldo: R$ <span id="saldoAtual">0.00</span></h3>
 
             <input
@@ -105,96 +62,10 @@
             </button>
 
             <div id="transacaoMensagem"></div>
+
+            <button class="btn-logout" onclick="logout()">Sair da Conta</button>
         </div>
 
-        <script>
-            // 1. Ajuste a porta se necessário (vi que a sua era 5250)
-            const API_URL =
-                "https://desenvolvimento-de-apis-e-servi-os-web.onrender.com/Api";
-
-            // FUNÇÃO DE LOGIN
-            async function fazerLogin() {
-                const usuario = document.getElementById("loginUsuario").value;
-                const senha = document.getElementById("loginSenha").value;
-                const msgLogin = document.getElementById("loginMensagem");
-
-                try {
-                    const response = await fetch(`${API_URL}/Auth/login`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        // Ajustado para 'Usuario' e 'Senha' com maiúsculo para bater com seu DTO
-                        body: JSON.stringify({
-                            Usuario: usuario,
-                            Senha: senha,
-                        }),
-                    });
-
-                    const data = await response.json();
-
-                    if (response.ok) {
-                        localStorage.setItem("token_banco", data.token);
-                        document.getElementById("loginScreen").style.display =
-                            "none";
-                        document.getElementById("dashboard").style.display =
-                            "block";
-                    } else {
-                        msgLogin.innerText =
-                            data.erro || "Usuário ou senha incorretos";
-                    }
-                } catch (error) {
-                    msgLogin.innerText = "Erro ao conectar com o servidor.";
-                }
-            }
-
-            // FUNÇÃO DE TRANSAÇÃO (SAQUE/DEPÓSITO)
-            async function realizarTransacao(tipo) {
-                const valor = parseFloat(
-                    document.getElementById("valorTransacao").value,
-                );
-
-                const token = localStorage.getItem("token_banco");
-
-                const msgBox = document.getElementById("transacaoMensagem");
-
-                try {
-                    const response = await fetch(
-                        `${API_URL}/Transacoes/${tipo}`,
-                        {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Bearer ${token}`,
-                            },
-                            body: JSON.stringify({
-                                Valor: valor,
-                                TipoOperacao: tipo,
-                            }),
-                        },
-                    );
-
-                    const data = await response.json();
-
-                    if (response.ok) {
-                        msgBox.className = "sucesso";
-
-                        msgBox.innerText =
-                            data.mensagem || "Operação realizada com sucesso.";
-
-                        if (data.novoSaldo !== undefined) {
-                            document.getElementById("saldoAtual").innerText =
-                                data.novoSaldo.toFixed(2);
-                        }
-                    } else {
-                        msgBox.className = "erro";
-
-                        msgBox.innerText =
-                            data.erro || data.Erro || "Erro na transação.";
-                    }
-                } catch (error) {
-                    msgBox.className = "erro";
-                    msgBox.innerText = "Erro de conexão com a API.";
-                }
-            }
-        </script>
+        <script src="script.js"></script>
     </body>
 </html>
