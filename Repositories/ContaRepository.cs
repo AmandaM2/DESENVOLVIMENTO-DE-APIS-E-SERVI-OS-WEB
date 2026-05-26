@@ -86,5 +86,14 @@ namespace Api.Repositories
                 .Include(c => c.Transacoes) // <-- CORREÇÃO: Alimenta o histórico e o gráfico do script.js
                 .FirstOrDefaultAsync(c => c.Usuario != null && c.Usuario.Nome == titular);
         }
+
+        // ==========================================================================
+        // 🔥 NOVO: ADICIONADO PARA SALVAR O HISTÓRICO DE TRANSAÇÕES DO COFRINHO
+        // ==========================================================================
+        public async Task AdicionarTransacaoAsync(Transacao transacao)
+        {
+            await _context.Transacoes.AddAsync(transacao);
+            await _context.SaveChangesAsync();
+        }
     }
 }

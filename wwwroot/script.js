@@ -15,17 +15,46 @@ function mudarTela(telaDestino) {
     if (destino) destino.style.display = "block";
 }
 
+// Função para alternar visualização da senha (ícone de olho)
+function toggleSenha(idInput, icone) {
+    const input = document.getElementById(idInput);
+    if (!input) return;
+    if (input.type === "password") {
+        input.type = "text";
+        icone.classList.add("ativo");
+    } else {
+        input.type = "password";
+        icone.classList.remove("ativo");
+    }
+}
+
 // FUNÇÃO DE CADASTRO
 async function fazerCadastro() {
     const msgCad = document.getElementById("cadastroMensagem");
     const btnCad = document.querySelector("#cadastroScreen button");
 
+
     const usuario = document.getElementById("cadUsuario")?.value || "";
     const email = document.getElementById("cadEmail")?.value || "";
     const cpf = document.getElementById("cadCpf")?.value || "";
     const senha = document.getElementById("cadSenha")?.value || "";
+    const confirmaSenha = document.getElementById("cadConfirmaSenha")?.value || "";
     const tipoConta = document.getElementById("cadTipoConta")?.value || "Corrente";
     const aceitouLgpd = document.getElementById("cadLgpd")?.checked || false;
+    const erroSenha = document.getElementById("erroConfirmaSenha");
+    if (erroSenha) erroSenha.innerText = "";
+    if (!senha || !confirmaSenha) {
+        if (erroSenha) {
+            erroSenha.innerText = "Preencha e confirme a senha.";
+        }
+        return;
+    }
+    if (senha !== confirmaSenha) {
+        if (erroSenha) {
+            erroSenha.innerText = "As senhas não coincidem.";
+        }
+        return;
+    }
 
     if (!aceitouLgpd) {
         if (msgCad) {
@@ -182,43 +211,77 @@ async function buscarDadosDashboard() {
 // FUNÇÃO DO HISTÓRICO
 // FUNÇÃO DO HISTÓRICO (Versão Corrigida Anti-Enum C#)
 function atualizarTabelaHistorico(transacoes) {
-    const cuerpoTabela = document.getElementById("corpoHistorico");
-    if (!cuerpoTabela) return;
+    const corpoTabela = document.getElementById("corpoHistorico");
 
-    cuerpoTabela.innerHTML = "";
+    if (!corpoTabela) return;
+
+    corpoTabela.innerHTML = "";
 
     if (!transacoes || transacoes.length === 0) {
-        cuerpoTabela.innerHTML = `<tr><td colspan="3" style="text-align:center;">Nenhuma transação realizada.</td></tr>`;
+        corpoTabela.innerHTML = `
+            <tr>
+                <td colspan="3" style="text-align:center;">
+                    Nenhuma transação realizada.
+                </td>
+            </tr>
+        `;
         return;
     }
 
     transacoes
-        .slice(-5)
-        .reverse()
+        .sort((a, b) =>
+            new Date(b.dataHora || b.DataHora) -
+            new Date(a.dataHora || a.DataHora)
+        )
         .forEach((t) => {
-            const dataBr = new Date(t.dataHora || t.data || t.DataHora || t.Data).toLocaleDateString("pt-BR");
 
-            // 1. Captura o tipo e força virar Texto (String) para evitar o erro toLowerCase()
-            const tipoBruto = t.tipoOperacao !== undefined ? t.tipoOperacao : (t.tipo || t.TipoOperacao || t.Tipo || "");
-            const tipoStr = String(tipoBruto).toLowerCase();
+            const dataOriginal = t.dataHora || t.DataHora;
 
-            // 2. Define a cor: se for o texto "sacar" ou o número "1" (Enum comum para saque)
-            const classeEstilo = (tipoStr === "sacar" || tipoStr === "1") ? "texto-erro" : "texto-sucesso";
+            const dataBr = new Date(dataOriginal).toLocaleString("pt-BR", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+            });
 
-            // 3. Traduz o número do Enum para um texto amigável na tabela
-            let tipoExibicao = tipoStr.toUpperCase();
-            if (tipoStr === "1" || tipoStr === "sacar") tipoExibicao = "SACAR";
-            if (tipoStr === "0" || tipoStr === "depositar") tipoExibicao = "DEPOSITAR";
+            const tipo =
+                String(
+                    t.tipoOperacao ||
+                    t.TipoOperacao ||
+                    t.tipo ||
+                    ""
+                ).toLowerCase();
 
-            const valorTransacao = t.valor !== undefined ? t.valor : (t.Valor || 0);
+            const valor = Number(
+                t.valor ||
+                t.Valor ||
+                0
+            );
 
-            cuerpoTabela.innerHTML += `
-      <tr>
-        <td>${dataBr}</td>
-        <td class="${classeEstilo}">${tipoExibicao}</td>
-        <td>R$ ${Number(valorTransacao).toFixed(2)}</td>
-      </tr>
-    `;
+            const ehSaque =
+                tipo.includes("sacar") ||
+                tipo.includes("resgatar");
+
+            const classe = ehSaque
+                ? "texto-erro"
+                : "texto-sucesso";
+
+            const simbolo = ehSaque ? "-" : "+";
+
+            corpoTabela.innerHTML += `
+                <tr>
+                    <td>${dataBr}</td>
+
+                    <td class="${classe}">
+                        ${tipo.toUpperCase()}
+                    </td>
+
+                    <td class="${classe}">
+                        ${simbolo} R$ ${valor.toFixed(2)}
+                    </td>
+                </tr>
+            `;
         });
 }
 

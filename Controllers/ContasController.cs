@@ -53,8 +53,23 @@ namespace Api.Controllers
                     limiteCartao = conta.LimiteCartao,
                     cofrinho = conta.Cofrinho,
                     tipo = conta.Tipo ?? "Corrente",
-                    // Envia a lista de transações (se for nula, envia uma lista vazia para o gráfico não quebrar)
-                    transacoes = conta.Transacoes ?? new List<Transacao>()
+
+                    transacoes = (conta.Transacoes ?? new List<Transacao>())
+        .OrderByDescending(t => t.DataHora)
+        .Select(t => new
+        {
+            dataHora = t.DataHora,
+
+            // 🛠️ CORRIGIDO: Agora usando 't.Tipo' que existe no seu Model
+            tipoOperacao = (int)t.Tipo switch
+            {
+                1 => "Saque",
+                2 => "Depósito",
+                _ => "Outro"
+            },
+
+            valor = t.Valor
+        }).ToList()
                 });
             }
             catch (Exception ex)
@@ -74,24 +89,27 @@ namespace Api.Controllers
             return Ok(conta);
         }
 
-        [AllowAnonymous] // Permite que pessoas sem login acessem para se cadastrar
+        [AllowAnonymous]
         [HttpPost("criar")]
         public async Task<IActionResult> CriarConta([FromBody] ContaCreateDTO novaConta)
         {
             try
             {
-                // Verifica se já existe uma conta com este titular
                 var contaExistente = await _repository.GetByTitularAsync(novaConta.Titular);
                 if (contaExistente != null)
                 {
-                    return BadRequest(new { erro = "Já existe uma conta com este titular. Escolha outro nome." });
+                    return BadRequest(new { erro = "Já existe uma conta com este titular." });
                 }
 
-                // Instanciando a Conta e o Usuário de forma interligada
                 var contaParaCriar = new Conta
                 {
                     Tipo = novaConta.Tipo,
                     Saldo = novaConta.Saldo,
+
+                    // 🛠️ ADICIONE ESSAS DUAS LINHAS AQUI:
+                    Cofrinho = 0.0m, // Ou novaConta.Cofrinho se o seu DTO já tiver esse campo
+                    LimiteCartao = 1000.0m, // Define um limite padrão inicial para o cliente
+
                     Usuario = new Usuario
                     {
                         Nome = novaConta.Titular,
@@ -100,14 +118,8 @@ namespace Api.Controllers
                     }
                 };
 
-                // Envia a estrutura completa para o repositório salvar
                 var contaCriada = await _repository.CreateAsync(contaParaCriar);
-
-                return Ok(new
-                {
-                    mensagem = "Conta e usuário criados com sucesso! Agora você já pode fazer login.",
-                    id = contaCriada.Id
-                });
+                return Ok(new { mensagem = "Conta criada com sucesso!", id = contaCriada.Id });
             }
             catch (Exception ex)
             {

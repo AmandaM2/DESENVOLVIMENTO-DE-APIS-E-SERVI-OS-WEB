@@ -1,10 +1,12 @@
 using Api.Models;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Api.Interfaces
 {
     public interface IContaRepository
     {
-        // Métodos que nosso repositório de Contas será OBRIGADO a ter
+        // Métodos obrigatórios do repositório
         Task<Conta> CreateAsync(Conta conta);
         Task<Conta?> DeleteAsync(int id);
         Task<bool> ExisteContaAsync(int id);
@@ -12,5 +14,8 @@ namespace Api.Interfaces
         Task<Conta?> GetByIdAsync(int id);
         Task<Conta?> UpdateAsync(int id, Conta conta);
         Task<Conta?> GetByTitularAsync(string titular);
+
+        // 🔥 CERTIFIQUE-SE DE QUE ESTA LINHA ESTÁ AQUI:
+        Task AdicionarTransacaoAsync(Transacao transacao);
     }
 }

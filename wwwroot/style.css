@@ -1,6 +1,4 @@
-/* ==========================================================================
-   CONFIGURAÇÕES GERAIS & PALETA DE CORES (Estilo Fintech Premium)
-   ========================================================================== */
+
 :root {
     --bg-banco: #f4f6f9;
     --cor-primaria: #6c5ce7; /* Roxo Moderno */
@@ -299,6 +297,57 @@ button:disabled {
     background-color: var(--cor-erro) !important;
     color: white;
     border-color: var(--cor-erro);
+}
+
+/* Aparência de link para o Cadastre-se */
+.link-cadastro {
+    color: #1976d2;
+    text-decoration: underline;
+    cursor: pointer;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+.link-cadastro:hover {
+    color: #0d47a1;
+}
+
+/* Wrapper para input de senha com ícone de olho */
+.input-senha-wrapper {
+    position: relative;
+    width: 100%;
+    margin-bottom: 15px;
+}
+.input-senha-wrapper input[type="password"],
+.input-senha-wrapper input[type="text"] {
+    padding-right: 38px;
+}
+.icone-olho {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 22px;
+    height: 22px;
+    background: url('data:image/svg+xml;utf8,<svg fill="%23636e72" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5C21.27 7.61 17 4.5 12 4.5zm0 13c-3.87 0-7.19-2.54-8.48-6C4.81 8.04 8.13 5.5 12 5.5s7.19 2.54 8.48 6c-1.29 3.46-4.61 6-8.48 6zm0-10a4 4 0 100 8 4 4 0 000-8zm0 6.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>') no-repeat center center;
+    background-size: 22px 22px;
+    cursor: pointer;
+    opacity: 0.7;
+    border: none;
+    outline: none;
+    z-index: 2;
+}
+.icone-olho.ativo {
+    background: url('data:image/svg+xml;utf8,<svg fill="%23636e72" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 6.5c-3.87 0-7.19 2.54-8.48 6 1.29 3.46 4.61 6 8.48 6s7.19-2.54 8.48-6c-1.29-3.46-4.61-6-8.48-6zm0 10c-2.21 0-4.21-1.2-5.3-3.01l1.45-1.45A2.5 2.5 0 0012 15.5a2.5 2.5 0 002.5-2.5c0-.41-.08-.8-.21-1.16l1.45-1.45C16.21 11.3 14.21 12.5 12 12.5zm-6.36-2.36l1.41-1.41A4.01 4.01 0 0112 8.5c1.1 0 2.1.45 2.83 1.17l1.41-1.41A5.98 5.98 0 0012 6.5c-2.21 0-4.21 1.2-5.3 3.01z"/></svg>') no-repeat center center;
+    background-size: 22px 22px;
+    opacity: 1;
+}
+/* Erro de campo abaixo do input */
+.erro-campo {
+    color: var(--cor-erro);
+    font-size: 13px;
+    margin-top: -10px;
+    margin-bottom: 10px;
+    min-height: 18px;
 }
 
 /* Esconde o cadastro e o dashboard por padrão ao iniciar o site */
