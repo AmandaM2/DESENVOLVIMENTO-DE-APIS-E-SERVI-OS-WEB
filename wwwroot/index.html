@@ -5,6 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Meu Banco Digital</title>
         <link rel="stylesheet" href="style.css" />
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     </head>
     <body>
         <div id="loginScreen" class="card">
@@ -47,6 +48,13 @@
                 id="cadSenha"
                 placeholder="Senha (Mínimo 8 caracteres, A-z, 0-9, $...)"
             />
+            <div class="container-lgpd">
+                <input type="checkbox" id="cadLgpd" />
+                <label for="cadLgpd"
+                    >Aceito os Termos de Uso e a Política de Privacidade
+                    (LGPD).</label
+                >
+            </div>
             <button class="btn-depositar" onclick="fazerCadastro()">
                 Cadastrar
             </button>
@@ -130,6 +138,35 @@
                     >
                         Resgatar do Cofrinho
                     </button>
+                </div>
+            </div>
+
+            <div class="secao-operacao">
+                <h3>Evolução Financeira</h3>
+                <div style="max-width: 100%; height: 200px">
+                    <canvas id="graficoFinancas"></canvas>
+                </div>
+            </div>
+
+            <div class="secao-operacao">
+                <h3>Histórico de Transações</h3>
+                <div class="tabela-container">
+                    <table id="tabelaHistorico">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Tipo</th>
+                                <th>Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody id="corpoHistorico">
+                            <tr>
+                                <td colspan="3" style="text-align: center">
+                                    Nenhuma transação realizada.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 

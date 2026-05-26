@@ -20,7 +20,9 @@ public class TokenService : ITokenService
     public string GerarToken(Usuario usuario)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"] ?? "ChaveMestraSuperSecretaComMaisDe32Caracteres");
+
+        // Força o uso da mesma chave exata sem consultar o appsettings
+        var key = Encoding.ASCII.GetBytes("ChaveMestraSuperSecretaComMaisDe32Caracteres");
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {

@@ -4,6 +4,7 @@ using Api.Interfaces;
 using Api.Models;
 using System.Threading.Tasks;
 using System;
+using System.Linq; // IMPORTANTE: Necessário para a validação .Any() da senha
 
 namespace Api.Controllers
 {
@@ -20,7 +21,7 @@ namespace Api.Controllers
             _tokenService = tokenService;
         }
 
-        // 1. ENDPOINT DE LOGIN
+        // 1. ENDPOINT DE LOGIN (Usa o LoginDTO simples)
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDTO dto)
         {
@@ -39,12 +40,19 @@ namespace Api.Controllers
             return Ok(new { Token = tokenString });
         }
 
-        // 2. ENDPOINT DE CADASTRO (Único e Corrigido)
+        // 2. ENDPOINT DE CADASTRO (Corrigido para usar o RegisterDTO e validar LGPD)
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] LoginDTO dto)
+        public async Task<IActionResult> Register([FromBody] RegisterDTO dto)
         {
             try
             {
+                // Validação de segurança da LGPD também no Backend
+                if (!dto.AceitouLgpd)
+                {
+                    return BadRequest(new { Erro = "Você precisa aceitar os termos da LGPD para criar uma conta." });
+                }
+
+                // Validação manual de Senha Forte
                 bool temMaiuscula = dto.Senha.Any(char.IsUpper);
                 bool temMinuscula = dto.Senha.Any(char.IsLower);
                 bool temNumero = dto.Senha.Any(char.IsDigit);
@@ -54,20 +62,21 @@ namespace Api.Controllers
                 {
                     return BadRequest(new { Erro = "A senha deve conter pelo menos 1 letra maiúscula, 1 minúscula, 1 número e 1 caractere especial." });
                 }
-                //  Verifica se já existe uma conta com esse mesmo usuário para evitar duplicidade
+
+                // Verifica se já existe uma conta com esse mesmo usuário para evitar duplicidade
                 var contaExistente = await _contaRepository.GetByTitularAsync(dto.Usuario);
                 if (contaExistente != null)
                 {
                     return BadRequest(new { Erro = "Este usuário já está sendo utilizado." });
                 }
 
-                // Cria o objeto do Usuário e da Conta Bancária usando a propriedade 'Nome' que você ajustou
+                // Cria o objeto do Usuário e da Conta Bancária com os novos recursos
                 var novaConta = new Conta
                 {
                     Tipo = dto.TipoConta,
                     Saldo = 0.00m,
-                    LimiteCartao = 500.00m,
-                    Cofrinho = 0.00m,
+                    LimiteCartao = 500.00m, // Limite inicial padrão
+                    Cofrinho = 0.00m,       // Cofrinho zerado
                     Usuario = new Usuario
                     {
                         Nome = dto.Usuario,

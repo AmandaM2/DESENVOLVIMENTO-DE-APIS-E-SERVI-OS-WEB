@@ -9,7 +9,6 @@ namespace Api.Repositories
 {
     public class ContaRepository(AppDbContext context) : IContaRepository
     {
-        // Injeção de Dependência utilizando o construtor primário do C#
         private readonly AppDbContext _context = context;
 
         public async Task<Conta> CreateAsync(Conta conta)
@@ -39,21 +38,23 @@ namespace Api.Repositories
 
         public async Task<List<Conta>> GetAllAsync()
         {
-            // Melhoria: Traz os dados do Usuário anexados a cada conta listada
-            return await _context.Contas.Include(c => c.Usuario).ToListAsync();
+            // Traz os dados do Usuário e Transações anexados
+            return await _context.Contas
+                .Include(c => c.Usuario)
+                .Include(c => c.Transacoes)
+                .ToListAsync();
         }
 
         public async Task<Conta?> GetByIdAsync(int id)
         {
-            // Melhoria: Usa Include em vez de FindAsync para carregar o relacionamento
             return await _context.Contas
                 .Include(c => c.Usuario)
+                .Include(c => c.Transacoes) // Adicionado para consistência
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
 
         public async Task<Conta?> UpdateAsync(int id, Conta conta)
         {
-            // CORREÇÃO: Incluindo o Usuário para permitir a atualização cadastral
             var contaModel = await _context.Contas
                 .Include(c => c.Usuario)
                 .FirstOrDefaultAsync(c => c.Id == id);
@@ -61,16 +62,17 @@ namespace Api.Repositories
             if (contaModel == null)
                 return null;
 
-            // Se o usuário da conta e as novas informações existirem, atualiza os dados dele
             if (contaModel.Usuario != null && conta.Usuario != null)
             {
                 contaModel.Usuario.Nome = conta.Usuario.Nome;
                 contaModel.Usuario.Email = conta.Usuario.Email;
             }
 
-            // Atualiza os dados nativos da Conta
+            // --- CORREÇÃO MAPEAMENTO: Salva todas as novas propriedades no MySQL ---
             contaModel.Tipo = conta.Tipo;
             contaModel.Saldo = conta.Saldo;
+            contaModel.Cofrinho = conta.Cofrinho;       // <-- ADICIONADO PARA O COFRINHO
+            contaModel.LimiteCartao = conta.LimiteCartao; // <-- ADICIONADO PARA O LIMITE
 
             await _context.SaveChangesAsync();
 
@@ -81,6 +83,7 @@ namespace Api.Repositories
         {
             return await _context.Contas
                 .Include(c => c.Usuario)
+                .Include(c => c.Transacoes) // <-- CORREÇÃO: Alimenta o histórico e o gráfico do script.js
                 .FirstOrDefaultAsync(c => c.Usuario != null && c.Usuario.Nome == titular);
         }
     }

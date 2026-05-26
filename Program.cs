@@ -15,7 +15,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// CORREÇÃO SEGURA PARA PRODUÇÃO:
 // Primeiro, tenta ler a string de conexão das variáveis de ambiente da nuvem.
 // Se não encontrar (ambiente local), usa o "ConexaoPadrao" do appsettings.json.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -28,6 +27,12 @@ if (string.IsNullOrEmpty(connectionString))
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySQL(connectionString));
 
+// --- NEWTONSOFT.JSON ---
+builder.Services.AddControllers().AddNewtonsoftJson(options =>
+{
+    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+});
+
 // --- 2. INJEÇÃO DE DEPENDÊNCIA ---
 builder.Services.AddScoped<IContaRepository, ContaRepository>();
 builder.Services.AddScoped<ITransacaoRepository, TransacaoRepository>();
@@ -36,9 +41,9 @@ builder.Services.AddScoped<ITransacaoService, TransacaoService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 
-// --- 3. CONFIGURAÇÃO DO JWT ---
-var jwtKey = builder.Configuration["Key"];
-var keyBytes = Encoding.ASCII.GetBytes($"{jwtKey}");
+// --- 3. CONFIGURAÇÃO DO JWT (Único e Corrigido para evitar o 401 local)
+var jwtKey = "ChaveMestraSuperSecretaComMaisDe32Caracteres"; // <-- Chave idêntica fixada
+var keyBytes = Encoding.ASCII.GetBytes(jwtKey);
 
 builder.Services.AddAuthentication(options =>
 {
@@ -51,10 +56,8 @@ builder.Services.AddAuthentication(options =>
     {
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
-        ValidateIssuer = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidateAudience = true,
-        ValidAudience = builder.Configuration["Jwt:Audience"],
+        ValidateIssuer = false,
+        ValidateAudience = false,
         ClockSkew = TimeSpan.Zero
     };
 });
@@ -102,7 +105,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection(); // Comentado para evitar perda de cabeçalhos HTTP locais
 
 app.UseAuthentication();
 app.UseAuthorization();

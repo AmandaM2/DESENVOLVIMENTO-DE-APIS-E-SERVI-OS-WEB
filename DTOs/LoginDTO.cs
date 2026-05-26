@@ -8,13 +8,6 @@ namespace Api.DTOs
         public string Usuario { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "A senha é obrigatória")]
-        [StringLength(20, MinimumLength = 6, ErrorMessage = "A senha deve ter entre 6 e 20 caracteres")]
         public string Senha { get; set; } = string.Empty;
-
-        public string TipoConta { get; set; } = string.Empty;
-
-        public string Email { get; set; } = string.Empty;
-
-        public string Cpf { get; set; } = string.Empty;
     }
 }
